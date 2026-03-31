@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engagement Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0c;
+    --surface: #1a1916;
+    --surface2: #232220;
+    --border: #2e2d2a;
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --text: #f0ede6;
+    --text-muted: #8a8880;
+    --text-dim: #5a5956;
+    --accent: #c9a84c;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 680px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* PROGRESS */
+  .progress-track {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+
+  .progress-step {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    transition: background 0.4s ease;
+  }
+
+  .progress-step.active { background: var(--gold); }
+  .progress-step.done { background: rgba(201,168,76,0.4); }
+
+  .progress-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4), transparent);
+  }
+
+  .question-number {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .question-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .question-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  /* Q1 - Company choice */
+  .company-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .company-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text-muted);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .company-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold-dim);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .company-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .company-btn:hover::after { opacity: 1; }
+
+  .company-btn.selected {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: var(--gold-dim);
+  }
+
+  .company-btn .check {
+    display: none;
+    font-size: 12px;
+    margin-top: 6px;
+    color: var(--gold);
+  }
+
+  .company-btn.selected .check { display: block; }
+
+  /* Q2 - Factor selection */
+  .factor-search {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .factor-search input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px 10px 38px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .factor-search input::placeholder { color: var(--text-dim); }
+  .factor-search input:focus { border-color: rgba(201,168,76,0.5); }
+
+  .factor-search .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  .selection-counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .counter-text {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .counter-badges {
+    display: flex;
+    gap: 4px;
+  }
+
+  .counter-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .counter-dot.filled { background: var(--gold); }
+
+  .factors-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .factors-grid::-webkit-scrollbar { width: 4px; }
+  .factors-grid::-webkit-scrollbar-track { background: transparent; }
+  .factors-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .factor-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+
+  .factor-item:hover:not(.disabled) {
+    border-color: rgba(201,168,76,0.3);
+    background: rgba(201,168,76,0.04);
+  }
+
+  .factor-item.selected {
+    border-color: var(--gold);
+    background: var(--gold-dim);
+  }
+
+  .factor-item.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .factor-item.hidden { display: none; }
+
+  .factor-checkbox {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s;
+  }
+
+  .factor-item.selected .factor-checkbox {
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .factor-checkbox svg {
+    display: none;
+    width: 10px; height: 10px;
+  }
+
+  .factor-item.selected .factor-checkbox svg { display: block; }
+
+  .factor-label {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.3;
+    transition: color 0.18s;
+  }
+
+  .factor-item.selected .factor-label { color: var(--text); }
+
+  /* Q3 - Satisfaction rating */
+  .satisfaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .satisfaction-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .satisfaction-item-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .rating-scale {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .rating-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.18s;
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+  }
+
+  .rating-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .rating-btn.selected {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  /* NAVIGATION */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    outline: none;
+  }
+
+  .btn-back {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .btn-back:hover {
+    border-color: var(--text-muted);
+    color: var(--text);
+  }
+
+  .btn-next {
+    background: var(--gold);
+    color: #0f0e0c;
+    font-weight: 600;
+    padding: 12px 32px;
+    margin-left: auto;
+  }
+
+  .btn-next:hover { background: var(--gold-light); }
+  .btn-next:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* SUCCESS */
+  .success-screen {
+    text-align: center;
+    padding: 16px;
+  }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    margin: 0 auto 24px;
+    background: var(--gold-dim);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .success-screen h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+
+  .success-screen p {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* LOADING */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,14,12,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ERROR */
+  .error-msg {
+    display: none;
+    background: rgba(220,60,60,0.1);
+    border: 1px solid rgba(220,60,60,0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #e88;
+    margin-top: 12px;
+  }
+
+  .error-msg.active { display: block; }
+
+  /* STEP TRANSITIONS */
+  .step { display: none; }
+  .step.active { display: block; animation: fadeUp 0.35s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 24px 20px; }
+    .company-options { grid-template-columns: 1fr; }
+    .rating-scale { grid-template-columns: repeat(5, 1fr); }
+    .rating-btn { font-size: 9px; padding: 6px 2px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Se trimite răspunsul...</div>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-label">Studiu intern • 2025</div>
+    <h1>Engagement Survey</h1>
+    <p>Răspunsurile tale sunt anonime și ne ajută să înțelegem ce contează cu adevărat pentru tine.</p>
+  </div>
+
+  <div class="progress-track">
+    <div class="progress-step active" id="ps1"></div>
+    <div class="progress-step" id="ps2"></div>
+    <div class="progress-step" id="ps3"></div>
+    <span class="progress-label" id="progressLabel">Pasul 1 din 3</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="question-number">Întrebarea 1</div>
+      <div class="question-title">Din ce companie faci parte?</div>
+      <div class="question-sub">Alege organizația din care faci parte.</div>
+      <div class="company-options">
+        <button class="company-btn" onclick="selectCompany('Impetum')">
+          Impetum
+          <div class="check">✓ Selectat</div>
+        </button>
+        <button class="company-btn" onclick="selectCompany('CITR')">
+          CITR
+          <div class="check">✓ Selectat</div>
+        </button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-next" id="nextBtn1" disabled onclick="goTo(2)">Continuă →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="card">
+      <div class="question-number">Întrebarea 2</div>
+      <div class="question-title">Care sunt top 5 factori de importanță critică?</div>
+      <div class="question-sub">Alege exact 5 factori care îți determină nivelul de engagement, ținând cont de momentul în care te afli în viață și carieră.</div>
+
+      <div class="factor-search">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Caută un factor..." id="factorSearch" oninput="filterFactors()">
+      </div>
+
+      <div class="selection-counter">
+        <span class="counter-text" id="counterText">0 din 5 selectați</span>
+        <div class="counter-badges">
+          <div class="counter-dot" id="d1"></div>
+          <div class="counter-dot" id="d2"></div>
+          <div class="counter-dot" id="d3"></div>
+          <div class="counter-dot" id="d4"></div>
+          <div class="counter-dot" id="d5"></div>
+        </div>
+      </div>
+
+      <div class="factors-grid" id="factorsGrid"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" onclick="goTo(1)">← Înapoi</button>
+      <button class="btn btn-next" id="nextBtn2" disabled onclick="goTo(3)">Continuă →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="card">
+      <div class="question-number">Întrebarea 3</div>
+      <div class="question-title">Care este nivelul tău de satisfacție actual?</div>
+      <div class="question-sub">Evaluează satisfacția pentru fiecare factor ales, la momentul actual.</div>
+      <div class="satisfaction-list" id="satisfactionList"></div>
+      <div class="error-msg" id="errorMsg">Te rugăm să evaluezi toți factorii înainte de a trimite.</div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" onclick="goTo(2)">← Înapoi</button>
+      <button class="btn btn-next" id="submitBtn" onclick="submitForm()">Trimite răspunsul →</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="step" id="stepSuccess">
+    <div class="card">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <h2>Mulțumim!</h2>
+        <p>Răspunsul tău a fost înregistrat cu succes.<br>Contribuția ta face diferența.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────
+// IMPORTANT: Înlocuiește cu URL-ul Apps Script după setup
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby4tP9gyXYiuMILn8OwPthOwL15x-WAFAdYT4G7AdpW_q_lVRNogN3DCXsNxPV-erC2/exec';
+
+// ─── DATA ──────────────────────────────────────────────────────
+const FACTORS = [
+  'Career development opportunities/Perspectives',
+  'High caliber colleagues/top performers',
+  'Efficient Governance',
+  'Up to date, transparent and efficient performance review system',
+  'Appreciation/recognition of your contribution and efforts (one to one)',
+  'Appreciation/recognition of your contribution and efforts (in public)',
+  'Intellectual stimulation',
+  'Meaningfulness of the role/possibility to have an impact/make a difference',
+  'Autonomy/Independence in job/in taking decisions',
+  'Challenging Objectives',
+  'Job dimension',
+  'Status/reputation',
+  'Power/Influence',
+  'Own results',
+  'Quality of the reporting team',
+  'Actual values of the organization',
+  'Clarity of expectations and job responsibilities',
+  'Company image & reputation/being associated with a reputable institution',
+  'Mission/Purpose of the company',
+  'Friendly and respectful climate/culture',
+  'Fairness/Equity among people',
+  'General leadership and management of the company',
+  'Customer focus of the organization',
+  'Innovation focus of the organization',
+  'Digital Transformation focus of the organization',
+  'Possibility of accessing superior technology',
+  'Job Intrinsic satisfaction',
+  'Compensation',
+  'Relationship with direct superior',
+  'Relationship with functional superior/If any',
+  'Interaction with clients',
+  'Relationship with peers',
+  'Peer Pressure/Competition',
+  'The team spirit and level of cooperation among people',
+  'Training/Executive Development/Coaching provided',
+  'Time spent with family and friends, time to yourself',
+  'Flexible work schedule (work from home, circadian customized, etc)',
+  'Job Location',
+  'Job Security',
+  'Management empathy on personal issues',
+  'Having a people management role',
+  'Developing your people',
+  'Work conditions/hygiene, comfort, etc'
+];
+
+const RATINGS = ['Very Low', 'Low', 'Decent', 'High', 'Very High'];
+const RATINGS_RO = ['Very Low', 'Low', 'Decent', 'High', 'Very High'];
+
+// ─── STATE ─────────────────────────────────────────────────────
+let state = {
+  company: null,
+  selectedFactors: [],
+  ratings: {}
+};
+
+// ─── INIT ──────────────────────────────────────────────────────
+function buildFactorsList() {
+  const grid = document.getElementById('factorsGrid');
+  grid.innerHTML = '';
+  FACTORS.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'factor-item';
+    div.id = 'fi_' + i;
+    div.setAttribute('data-label', f.toLowerCase());
+    div.onclick = () => toggleFactor(i, f);
+    div.innerHTML = `
+      <div class="factor-checkbox">
+        <svg viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#0f0e0c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="factor-label">${f}</span>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────
+function goTo(step) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step' + step).classList.add('active');
+
+  // Progress bar
+  ['ps1','ps2','ps3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    if (i + 1 < step) el.classList.add('done');
+    else if (i + 1 === step) el.classList.add('active');
+  });
+
+  document.getElementById('progressLabel').textContent = `Pasul ${step} din 3`;
+
+  if (step === 3) buildSatisfactionList();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ─── Q1 ────────────────────────────────────────────────────────
+function selectCompany(company) {
+  state.company = company;
+  document.querySelectorAll('.company-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('nextBtn1').disabled = false;
+}
+
+// ─── Q2 ────────────────────────────────────────────────────────
+function toggleFactor(idx, label) {
+  if (state.selectedFactors.includes(label)) {
+    state.selectedFactors = state.selectedFactors.filter(f => f !== label);
+    document.getElementById('fi_' + idx).classList.remove('selected');
+  } else {
+    if (state.selectedFactors.length >= 5) return;
+    state.selectedFactors.push(label);
+    document.getElementById('fi_' + idx).classList.add('selected');
+  }
+  updateFactorUI();
+}
+
+function updateFactorUI() {
+  const count = state.selectedFactors.length;
+
+  // counter
+  document.getElementById('counterText').textContent = `${count} din 5 selectați`;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('d' + i).classList.toggle('filled', i <= count);
+  }
+
+  // disable unselected if 5 reached
+  FACTORS.forEach((f, i) => {
+    const el = document.getElementById('fi_' + i);
+    if (!el) return;
+    if (count >= 5 && !state.selectedFactors.includes(f)) {
+      el.classList.add('disabled');
+    } else {
+      el.classList.remove('disabled');
+    }
+  });
+
+  document.getElementById('nextBtn2').disabled = count !== 5;
+}
+
+function filterFactors() {
+  const q = document.getElementById('factorSearch').value.toLowerCase();
+  FACTORS.forEach((f, i) => {
+    const el = document.getElementById('fi_' + i);
+    if (!el) return;
+    el.classList.toggle('hidden', q.length > 0 && !f.toLowerCase().includes(q));
+  });
+}
+
+// ─── Q3 ────────────────────────────────────────────────────────
+function buildSatisfactionList() {
+  const list = document.getElementById('satisfactionList');
+  list.innerHTML = '';
+  state.selectedFactors.forEach(factor => {
+    const div = document.createElement('div');
+    div.className = 'satisfaction-item';
+    div.innerHTML = `
+      <div class="satisfaction-item-label">${factor}</div>
+      <div class="rating-scale" id="rs_${btoa(encodeURIComponent(factor)).replace(/[^a-zA-Z0-9]/g,'')}">
+        ${RATINGS.map((r, i) => `
+          <button class="rating-btn" onclick="setRating('${factor.replace(/'/g,"\\'")}', '${r}', this, '${btoa(encodeURIComponent(factor)).replace(/[^a-zA-Z0-9]/g,'')}')">
+            ${RATINGS_RO[i]}
+          </button>
+        `).join('')}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function setRating(factor, rating, btn, groupId) {
+  state.ratings[factor] = rating;
+  const group = document.getElementById('rs_' + groupId);
+  if (group) {
+    group.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+  document.getElementById('errorMsg').classList.remove('active');
+}
+
+// ─── SUBMIT ────────────────────────────────────────────────────
+async function submitForm() {
+  // Validate all factors rated
+  const unrated = state.selectedFactors.filter(f => !state.ratings[f]);
+  if (unrated.length > 0) {
+    document.getElementById('errorMsg').classList.add('active');
+    return;
+  }
+
+  document.getElementById('loadingOverlay').classList.add('active');
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    company: state.company,
+    factors: state.selectedFactors.join(' | '),
+    factor1: state.selectedFactors[0] || '',
+    factor2: state.selectedFactors[1] || '',
+    factor3: state.selectedFactors[2] || '',
+    factor4: state.selectedFactors[3] || '',
+    factor5: state.selectedFactors[4] || '',
+    rating1: state.ratings[state.selectedFactors[0]] || '',
+    rating2: state.ratings[state.selectedFactors[1]] || '',
+    rating3: state.ratings[state.selectedFactors[2]] || '',
+    rating4: state.ratings[state.selectedFactors[3]] || '',
+    rating5: state.ratings[state.selectedFactors[4]] || '',
+  };
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    document.getElementById('loadingOverlay').classList.remove('active');
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('stepSuccess').classList.add('active');
+
+    // Hide progress on success
+    document.querySelector('.progress-track').style.display = 'none';
+
+  } catch (err) {
+    document.getElementById('loadingOverlay').classList.remove('active');
+    alert('A apărut o eroare. Te rugăm să încerci din nou.');
+  }
+}
+
+// ─── BOOT ──────────────────────────────────────────────────────
+buildFactorsList();
+</script>
+</body>
+</html>
